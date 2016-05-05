@@ -1,0 +1,25 @@
+{
+    "name": "funkjedi/composer-include-files",
+    "type": "composer-plugin",
+    "description": "Include files at a higher priority than autoload files.",
+    "keywords": ["composer", "autoload"],
+    "homepage": "https://github.com/funkjedi/composer-include-files",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tim Robertson",
+            "email": "funkjedi@gmail.com"
+        }
+    ],
+    "require": {
+        "composer-plugin-api": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ComposerIncludeFiles\\": "src"
+        }
+    },
+    "extra": {
+        "class": "ComposerIncludeFiles\\Plugin"
+    }
+}
