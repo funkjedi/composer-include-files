@@ -40,7 +40,7 @@ class AutoloadGenerator extends ComposerAutoloadGenerator
 	 * @param string
 	 * @param string
 	 */
-	public function dumpFiles(Composer $composer, $paths, $targetDir = 'composer')
+	public function dumpFiles(Composer $composer, $paths, $targetDir = 'composer', $suffix = '', $staticPhpVersion = 70000)
 	{
 		$installationManager = $composer->getInstallationManager();
 		$localRepo = $composer->getRepositoryManager()->getLocalRepository();
@@ -69,5 +69,19 @@ class AutoloadGenerator extends ComposerAutoloadGenerator
 		} elseif (file_exists($includeFilesFilePath)) {
 			unlink($includeFilesFilePath);
 		}
+
+		if (!$suffix) {
+			if (!$config->get('autoloader-suffix') && is_readable($vendorPath.'/autoload.php')) {
+				$content = file_get_contents($vendorPath.'/autoload.php');
+				if (preg_match('{ComposerAutoloaderInit([^:\s]+)::}', $content, $match)) {
+					$suffix = $match[1];
+				}
+			}
+			if (!$suffix) {
+				$suffix = $config->get('autoloader-suffix') ?: md5(uniqid('', true));
+			}
+		}
+
+		file_put_contents($targetDir.'/autoload_static.php', $this->getStaticFile($suffix, $targetDir, $vendorPath, $basePath, $staticPhpVersion));
 	}
 }
