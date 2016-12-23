@@ -39,6 +39,8 @@ class AutoloadGenerator extends ComposerAutoloadGenerator
 	 * @param \Composer\Composer
 	 * @param string
 	 * @param string
+	 *
+	 * @see https://github.com/composer/composer/blob/master/src/Composer/Autoload/AutoloadGenerator.php#L115
 	 */
 	public function dumpFiles(Composer $composer, $paths, $targetDir = 'composer', $suffix = '', $staticPhpVersion = 70000)
 	{
@@ -48,27 +50,25 @@ class AutoloadGenerator extends ComposerAutoloadGenerator
 		$config = $composer->getConfig();
 
 		$filesystem = new Filesystem();
-		$basePath = $filesystem->normalizePath(realpath(getcwd()));
-		$vendorPath = $filesystem->normalizePath(realpath($config->get('vendor-dir')));
+		$filesystem->ensureDirectoryExists($config->get('vendor-dir'));
+		// Do not remove double realpath() calls.
+		// Fixes failing Windows realpath() implementation.
+		// See https://bugs.php.net/bug.php?id=72738
+		$basePath = $filesystem->normalizePath(realpath(realpath(getcwd())));
+		$vendorPath = $filesystem->normalizePath(realpath(realpath($config->get('vendor-dir'))));
 		$targetDir = $vendorPath.'/'.$targetDir;
+		$filesystem->ensureDirectoryExists($targetDir);
+
 		$vendorPathCode = $filesystem->findShortestPathCode(realpath($targetDir), $vendorPath, true);
 		$vendorPathCode52 = str_replace('__DIR__', 'dirname(__FILE__)', $vendorPathCode);
+		$vendorPathToTargetDirCode = $filesystem->findShortestPathCode($vendorPath, realpath($targetDir), true);
+
 		$appBaseDirCode = $filesystem->findShortestPathCode($vendorPath, $basePath, true);
 		$appBaseDirCode = str_replace('__DIR__', '$vendorDir', $appBaseDirCode);
 
+		// Collect information from all packages.
 		$packageMap = $this->buildPackageMap($installationManager, $mainPackage, $localRepo->getCanonicalPackages());
 		$autoloads = $this->parseAutoloads($packageMap, $mainPackage);
-
-		$paths = $this->parseAutoloadsTypeFiles($paths, $mainPackage);
-
-		$autoloads['files'] = array_merge($paths, $autoloads['files']);
-
-		$includeFilesFilePath = $targetDir.'/autoload_files.php';
-		if ($includeFilesFileContents = $this->getIncludeFilesFile($autoloads['files'], $filesystem, $basePath, $vendorPath, $vendorPathCode52, $appBaseDirCode)) {
-			file_put_contents($includeFilesFilePath, $includeFilesFileContents);
-		} elseif (file_exists($includeFilesFilePath)) {
-			unlink($includeFilesFilePath);
-		}
 
 		if (!$suffix) {
 			if (!$config->get('autoloader-suffix') && is_readable($vendorPath.'/autoload.php')) {
@@ -82,6 +82,16 @@ class AutoloadGenerator extends ComposerAutoloadGenerator
 			}
 		}
 
+		$paths = $this->parseAutoloadsTypeFiles($paths, $mainPackage);
+
+		$autoloads['files'] = array_merge($paths, $autoloads['files']);
+
+		$includeFilesFilePath = $targetDir.'/autoload_files.php';
+		if ($includeFilesFileContents = $this->getIncludeFilesFile($autoloads['files'], $filesystem, $basePath, $vendorPath, $vendorPathCode52, $appBaseDirCode)) {
+			file_put_contents($includeFilesFilePath, $includeFilesFileContents);
+		} elseif (file_exists($includeFilesFilePath)) {
+			unlink($includeFilesFilePath);
+		}
 		file_put_contents($targetDir.'/autoload_static.php', $this->getStaticFile($suffix, $targetDir, $vendorPath, $basePath, $staticPhpVersion));
 	}
 }
