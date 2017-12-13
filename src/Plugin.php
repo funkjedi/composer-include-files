@@ -47,10 +47,16 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 	{
 		$extraConfig = $this->composer->getPackage()->getExtra();
 
-		if (!array_key_exists('include_files', $extraConfig) || !is_array($extraConfig['include_files'])) {
+		/*if (!array_key_exists('include_files', $extraConfig) || !is_array($extraConfig['include_files'])) {
+			return;
+		}*/
+		$includeFiles = !empty($extraConfig['include_files']) ? $extraConfig['include_files'] : [];
+		$excludeFiles = !empty($extraConfig['exclude_files']) ? $extraConfig['exclude_files'] : [];
+		if (!$includeFiles && !$excludeFiles) {
 			return;
 		}
 
-		$this->generator->dumpFiles($this->composer, $extraConfig['include_files']);
+		//$this->generator->dumpFiles($this->composer, $extraConfig['include_files']);
+		$this->generator->dumpFiles($this->composer, $includeFiles, $excludeFiles);
 	}
 }
