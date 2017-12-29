@@ -1,6 +1,6 @@
 # Composer - Include Files Plugin
 
-When using the Composer Autoloader if you need project files included prior to files autoloaded by any of your dependancies your out of luck. No longer!
+When using the Composer Autoloader if you need project files included prior to files autoloaded by any of your dependencies your out of luck. No longer!
 
 Just add the files you need included using `"include_files"` and they will be include prior to any files included by your dependancies.
 
