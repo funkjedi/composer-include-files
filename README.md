@@ -10,7 +10,7 @@ composer require funkjedi/composer-include-files
 
 ## Usage
 
-Just add the files you need included using `"include_files"` and they will be include prior to any files included by your dependancies.
+Just add the files you need included using `"include_files"` and they will be include prior to any files included by your dependencies.
 
 ```json
 // composer.json (project)
