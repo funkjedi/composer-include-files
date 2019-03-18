@@ -8,6 +8,9 @@ use Composer\IO\IOInterface;
 use Composer\Plugin\PluginEvents;
 use Composer\Plugin\PluginInterface;
 use ComposerIncludeFiles\Composer\AutoloadGenerator;
+use Composer\Package\CompletePackage;
+use Composer\Script\Event;
+use Composer\Util\Filesystem;
 
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
@@ -38,19 +41,59 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 	 */
 	public static function getSubscribedEvents()
 	{
-		return array(
+	    return array(
 			'post-autoload-dump' => 'dumpFiles',
 		);
 	}
 
-	public function dumpFiles()
+	public function dumpFiles(Event $event)
 	{
-		$extraConfig = $this->composer->getPackage()->getExtra();
+	    // var to hold the include files
+        $extraIncludeFiles = [];
 
-		if (!array_key_exists('include_files', $extraConfig) || !is_array($extraConfig['include_files'])) {
-			return;
-		}
+        // setup filesystem object
+        $filesystem = new Filesystem();
 
-		$this->generator->dumpFiles($this->composer, $extraConfig['include_files']);
+        // set up installation manage
+        $installationManager = $event->getComposer()->getInstallationManager();
+
+        // get all packages except the root package
+        $packages = $this->composer->getRepositoryManager()->getLocalRepository()->getCanonicalPackages();
+
+        // process packages
+        foreach ($packages as $package) {
+
+            // only include CompletePackages
+            if ($package instanceof CompletePackage) {
+
+                // get this package extra config values
+                $packageConfig = $package->getExtra();
+
+                // if has include files
+                if (isset($packageConfig['include_files'])) {
+
+                    // get this package base dir
+                    $packageBaseDir = $filesystem->normalizePath($installationManager->getInstallPath($package));
+
+                    // process each include file for the package
+                    foreach ($packageConfig['include_files'] as $file) {
+
+                        // update the path of the package file to be realitive of the vendor dir
+                        $extraIncludeFiles[] = $filesystem->normalizePath($packageBaseDir . '/' . $file);
+                    }
+                }
+            }
+        }
+
+        // check if the root package has include files
+        $package = $this->composer->getPackage()->getExtra();
+        if (isset($package['include_files'])) {
+            $extraIncludeFiles = array_merge($extraIncludeFiles, $package['include_files']);
+        }
+
+        // if we have files, then process them
+        if (!empty($extraIncludeFiles)) {
+            $this->generator->dumpFiles($this->composer, $extraIncludeFiles);
+        }
 	}
 }
