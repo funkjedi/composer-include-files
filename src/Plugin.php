@@ -24,7 +24,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 	/**
 	 * Apply plugin modifications to Composer
 	 *
-	 * @param Composer    $composer
+	 * @param Composer $composer
 	 * @param IOInterface $io
 	 */
 	public function activate(Composer $composer, IOInterface $io)
@@ -33,25 +33,25 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 		$this->generator = new AutoloadGenerator($composer->getEventDispatcher(), $io);
 	}
 
-    /**
-     * @param Composer $composer
-     * @param IOInterface $io
-     */
-    public function deactivate(Composer $composer, IOInterface $io)
-    {
+	/**
+	 * @param Composer $composer
+	 * @param IOInterface $io
+	 */
+	public function deactivate(Composer $composer, IOInterface $io)
+	{
+		// do nothing
+	}
 
-    }
+	/**
+	 * @param Composer $composer
+	 * @param IOInterface $io
+	 */
+	public function uninstall(Composer $composer, IOInterface $io)
+	{
+		// do nothing
+	}
 
-    /**
-     * @param Composer $composer
-     * @param IOInterface $io
-     */
-    public function uninstall(Composer $composer, IOInterface $io)
-    {
-
-    }
-
-    /**
+	/**
 	 * @return array
 	 */
 	public static function getSubscribedEvents()
