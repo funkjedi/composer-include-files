@@ -5,8 +5,8 @@ namespace ComposerIncludeFiles;
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
-use Composer\Plugin\PluginEvents;
 use Composer\Plugin\PluginInterface;
+use Composer\Script\ScriptEvents;
 use ComposerIncludeFiles\Composer\AutoloadGenerator;
 
 class Plugin implements PluginInterface, EventSubscriberInterface
@@ -57,6 +57,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 	public static function getSubscribedEvents()
 	{
 		return array(
+			ScriptEvents::POST_INSTALL_CMD => 'dumpFiles',
 			'post-autoload-dump' => 'dumpFiles',
 		);
 	}
